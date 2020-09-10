@@ -1,0 +1,25 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker pull gcr.io/earnest-vine-157506/antifake-liff:latest || exit 0
+  - name: gcr.io/cloud-builders/docker
+    timeout: 1200s
+    args:
+      [
+        'build',
+        '-f',
+        'Dockerfile',
+        '-t',
+        'gcr.io/earnest-vine-157506/antifake-liff',
+        '--cache-from',
+        'gcr.io/earnest-vine-157506/antifake-liff:latest',
+        '.',
+      ]
+timeout: 1200s
+images:
+  - gcr.io/earnest-vine-157506/antifake-liff
+#gcloud builds submit --project "earnest-vine-157506" --config=./cloud-build.yml
+#gcloud beta run deploy cloud-run-antifake-liff --region asia-southeast1 --project "earnest-vine-157506" --image gcr.io/earnest-vine-157506/antifake-liff --platform managed
