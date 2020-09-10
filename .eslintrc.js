@@ -13,13 +13,7 @@ module.exports = {
   ],
   plugins: ['prettier'],
   // add your custom rules here
-  rules: {},
-  overrides: [
-    {
-      env: {
-        //jest: true,
-        liff: true,
-      },
-    },
-  ],
+  rules: {
+    'nuxt/no-cjs-in-config': 'off',
+  },
 }

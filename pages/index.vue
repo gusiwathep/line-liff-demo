@@ -8,8 +8,8 @@
         size="6rem"
         :src="userProfile.pictureUrl"
       ></b-avatar>
-      <h1 class="title" v-if="userProfile.displayName == ''">Antifake LIFF</h1>
-      <h1 class="title" v-else>{{ userProfile.displayName }}</h1>
+      <h1 v-if="userProfile.displayName == ''" class="title">Antifake LIFF</h1>
+      <h1 v-else class="title">{{ userProfile.displayName }}</h1>
 
       <b-card title="userId">
         <b-card-text>
@@ -28,10 +28,13 @@
           {{ email }}
         </b-card-text>
       </b-card>
-
+      <!-- <button @click="locateMe">Get location</button> -->
       <div v-if="location">
         Your location data is {{ location.coords.latitude }},
         {{ location.coords.longitude }}
+      </div>
+      <div v-if="errorStr">
+        {{ errorStr }}
       </div>
     </div>
   </div>
@@ -46,51 +49,72 @@ export default Vue.extend({
     return {
       userProfile: {},
       email: '',
-      location: '',
+      location: null,
       gettingLocation: false,
       errorStr: '',
     }
   },
-  created() {
-    if (!('geolocation' in window.navigator)) {
-      this.errorStr = 'Geolocation is not available.'
-      return
-    }
-
-    this.gettingLocation = true
-
-    window.navigator.geolocation.getCurrentPosition(
-      (pos: any) => {
-        this.gettingLocation = false
-        this.location = pos
-      },
-      (err) => {
-        this.gettingLocation = false
-        this.errorStr = err.message
-      }
-    )
-  },
+  created() {},
   mounted() {
-    liff
+    window.liff
       .init({
         liffId: '1654910665-6jAGm1AG',
       })
       .then(() => {
-        if (!liff.isLoggedIn()) {
-          liff.login()
+        if (!window.liff.isLoggedIn()) {
+          window.liff.login()
         } else {
-          liff.getProfile().then((profile) => {
-            console.log(profile)
+          window.liff.getProfile().then((profile: any) => {
             this.userProfile = profile
-            liff.getDecodedIDToken().then((o) => {
+            window.liff.getDecodedIDToken().then((o: any) => {
               this.email = o.email
             })
           })
         }
       })
       .catch((err: LIFFErrorObject) => {
+        // eslint-disable-next-line no-console
         console.log(err)
       })
+
+    setTimeout(async () => await this.locateMe(), 2000)
+  },
+  methods: {
+    // eslint-disable-next-line require-await
+    async getLocation() {
+      return new Promise((resolve: any, reject: any) => {
+        if (!('geolocation' in window.navigator)) {
+          this.errorStr = 'Geolocation is not available.'
+          reject(new Error('Geolocation is not available.'))
+        }
+
+        const options = {
+          enableHighAccuracy: false,
+          timeout: 5000,
+          maximumAge: 0,
+        } as any
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            resolve(pos)
+          },
+          (err) => {
+            reject(err)
+          },
+          options
+        )
+      })
+    },
+    async locateMe() {
+      this.gettingLocation = true
+      try {
+        this.gettingLocation = false
+        this.location = (await this.getLocation()) as any
+      } catch (e) {
+        this.gettingLocation = false
+        this.errorStr = e.message
+      }
+    },
   },
 })
 </script>
